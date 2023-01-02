@@ -1,15 +1,54 @@
 <template>
     <div class="container">
-        <p class="col-span-full text-3xl text-gray-700 font-bold mb-5">
-            Welcome this is the HomePage!
-        </p>
-        <p class="text-black text-lg col-span-full">
-            Vue and Tailwind CSS in action
-        </p>
-        <div class="aspect-w-16 aspect-h-8 col-span-full">
-            <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowfullscreen></iframe>
-        </div>
+        <h2 class="col-span-full">{{ content.entryHeadline }}</h2>
+        <p class="col-span-full">{{ content.entrySummary }}</p>
+        <img v-if="content.aboutImage" :src="urlFor(content.aboutImage)" class="col-span-full"/>
     </div>
 </template>
+
+<script>
+    import sanity from "../../sanity.js";
+    import imageUrlBuilder from "@sanity/image-url"
+
+    const builder = imageUrlBuilder(sanity);
+
+
+    const query = `*[_type == "home"]{
+        _id,
+        entryHeadline,
+        entrySummary,
+        aboutImage,
+        }[0]`;
+
+
+    export default {
+          data() {
+            return {
+                loading: true,
+                content: [],
+            };
+        },
+        created() {
+            this.fetchData();
+        },
+        methods: {
+            urlFor(source) {
+                return builder.image(source)
+            },
+            fetchData() {
+                this.error = this.home = null;
+                this.loading = true;
+                sanity.fetch(query).then(
+                    (content) => {
+                        this.loading = false;
+                        this.content = content;
+                    },
+                    (error) => {
+                        this.error = error;
+                    }
+                );
+            },
+        },
+    }
+
+</script>
